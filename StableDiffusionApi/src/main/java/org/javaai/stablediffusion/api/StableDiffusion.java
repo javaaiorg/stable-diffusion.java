@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.javaai.stablediffusion.api.utils.ImageUtils;
 
 public class StableDiffusion implements AutoCloseable {
@@ -17,6 +18,12 @@ public class StableDiffusion implements AutoCloseable {
 	public static final Integer img_default_height = 512;
 	
 	
+	/**
+	 * 
+	 */
+	public StableDiffusion() {
+		this(null, null, null, null, null, null);
+	}
 
 	
 	
@@ -142,6 +149,20 @@ public class StableDiffusion implements AutoCloseable {
 			String model_path, String vae_path, int ggml_type_value, int schedule);
 	
 	
+	
+
+	/**
+	 * 
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @return
+	 */
+	public List<BufferedImage> txt2img(String prompt, String negative_prompt) {
+		List<BufferedImage> results = txt2img(prompt, negative_prompt, null, null, null, null, null, null, null);
+		
+		return results;
+	}
+	
 	/**
 	 * 
 	 * @param prompt NotNull 
@@ -159,14 +180,17 @@ public class StableDiffusion implements AutoCloseable {
 			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
 			Integer sample_steps, Long seed, Integer batch_count) {
 		
-		width = makeWidthSafe(width);
-		height = makeHeightSafe(height);
 		
-		List<byte[]> pixelImages = txt2PixelsImg(prompt, negative_prompt, cfg_scale, width, height, sample_method, sample_steps, seed, batch_count);
+		MutablePair<Integer, Integer> imageSize = new MutablePair<>();
+		
+		List<byte[]> pixelImages = txt2PixelsImg(prompt, negative_prompt, 
+				cfg_scale, width, height, 
+				sample_method, sample_steps, seed, batch_count, 
+				imageSize);
 		
 		List<BufferedImage> results = new ArrayList<>(pixelImages.size());
 		for (byte[] pixels : pixelImages) {
-			BufferedImage image = ImageUtils.pixelsBGRToImage(pixels, width, height);
+			BufferedImage image = ImageUtils.pixelsBGRToImage(pixels, imageSize.getLeft(), imageSize.getRight());
 			results.add(image);
 		}
 		
@@ -198,6 +222,18 @@ public class StableDiffusion implements AutoCloseable {
 	 * 
 	 * @param prompt NotNull 
 	 * @param negative_prompt Nullable, default is empty string. 
+	 * @param out_imageSize Nullable, output param returns image size, left is width, right is height. 
+	 * @return
+	 */
+	public List<byte[]> txt2PixelsImg(String prompt, String negative_prompt, 
+			MutablePair<Integer, Integer> out_imageSize) {
+		return txt2PixelsImg(prompt, negative_prompt, null, null, null, null, null, null, null, out_imageSize);
+	}
+	
+	/**
+	 * 
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
 	 * @param cfg_scale Nullable, default is 7.0f. 
 	 * @param width Nullable, default is 512. 
 	 * @param height Nullable, default is 512, 
@@ -205,11 +241,12 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param sample_steps Nullable, default is 20.  
 	 * @param seed Nullable, default is 42L. 
 	 * @param batch_count Nullable, default is 1. 
+	 * @param out_imageSize Nullable, output param returns image size, left is width, right is height. 
 	 * @return
 	 */
 	public List<byte[]> txt2PixelsImg(String prompt, String negative_prompt, 
 			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
-			Integer sample_steps, Long seed, Integer batch_count) {
+			Integer sample_steps, Long seed, Integer batch_count, MutablePair<Integer, Integer> out_imageSize) {
 		
 		if (StringUtils.isBlank(prompt)) {
 			throw new IllegalArgumentException("Argument prompt can not be empty/blank. ");
@@ -247,6 +284,11 @@ public class StableDiffusion implements AutoCloseable {
 				prompt, negative_prompt, cfg_scale, 
 				width, height, sample_method, sample_steps, seed, batch_count);
 		
+		if (out_imageSize != null) {
+			out_imageSize.setLeft(width);
+			out_imageSize.setRight(height);
+		}
+		
 		
 		return results;
 	}
@@ -259,6 +301,22 @@ public class StableDiffusion implements AutoCloseable {
 			int sample_steps, long seed, int batch_count);
 	
 	
+	
+
+	
+	/**
+	 * 
+	 * @param img NotNull
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @return
+	 */
+	public List<BufferedImage> img2img(BufferedImage img, String prompt, String negative_prompt) {
+		
+		List<BufferedImage> results = img2img(img, prompt, negative_prompt, null, null, null, null, null, null, null);
+		
+		return results;
+	}
 	
 
 	
@@ -280,23 +338,44 @@ public class StableDiffusion implements AutoCloseable {
 			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
 			Integer sample_steps, Float strength, Long seed) {
 		
-		width = makeWidthSafe(width);
-		height = makeHeightSafe(height);
 
 		byte[] pixelsBGR = ImageUtils.imageToPixelsBGR(img);
 		
+		MutablePair<Integer, Integer> imageSize = new MutablePair<>();
 		List<byte[]> byteImgs = img2img(pixelsBGR, 
 				prompt, negative_prompt, 
 				cfg_scale, width, height, 
-				sample_method, sample_steps, strength, seed);
+				sample_method, sample_steps, strength, seed, imageSize);
 		
 		List<BufferedImage> results = new ArrayList<>();
 		for (byte[] byteImage : byteImgs) {
 			
-			BufferedImage bufferedImage = ImageUtils.pixelsBGRToImage(byteImage, width, height);
+			BufferedImage bufferedImage = ImageUtils.pixelsBGRToImage(byteImage, 
+					imageSize.getLeft(), imageSize.getRight());
 			results.add(bufferedImage);
 
 		}
+		
+		return results;
+		
+	}
+	
+	
+
+	/**
+	 * 
+	 * @param img NotNull
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @param out_imageSize Nullable, output param returns image size, left is width, right is height. 
+	 * @return
+	 */
+	public List<byte[]> img2img(byte[] img, String prompt, String negative_prompt, 
+			MutablePair<Integer, Integer> out_imageSize) {
+		
+		List<byte[]> results = img2img(img, prompt, negative_prompt, 
+				null, null, null, null, null, null, null, out_imageSize);
+		
 		
 		return results;
 		
@@ -315,11 +394,13 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param sample_steps Nullable, default is 20.  
 	 * @param strength Nullable, default is 0.75f.
 	 * @param seed Nullable, default is 42L. 
+	 * @param out_imageSize Nullable, output param returns image size, left is width, right is height. 
 	 * @return
 	 */
 	public List<byte[]> img2img(byte[] img, String prompt, String negative_prompt, 
 			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
-			Integer sample_steps, Float strength, Long seed) {
+			Integer sample_steps, Float strength, Long seed, 
+			MutablePair<Integer, Integer> out_imageSize) {
 		
 		if (StringUtils.isBlank(prompt)) {
 			throw new IllegalArgumentException("Argument prompt can not be empty/blank. ");
