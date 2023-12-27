@@ -260,6 +260,118 @@ public class StableDiffusion implements AutoCloseable {
 	
 	
 	
+
+	
+	/**
+	 * 
+	 * @param img NotNull
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @param cfg_scale Nullable, default is 7.0f. 
+	 * @param width Nullable, default is 512. 
+	 * @param height Nullable, default is 512, 
+	 * @param sample_method Nullable, default is {@link SampleMethod#EULER_A}
+	 * @param sample_steps Nullable, default is 20.  
+	 * @param strength Nullable, default is 0.75f.
+	 * @param seed Nullable, default is 42L. 
+	 * @return
+	 */
+	public List<BufferedImage> img2img(BufferedImage img, String prompt, String negative_prompt, 
+			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
+			Integer sample_steps, Float strength, Long seed) {
+		
+		width = makeWidthSafe(width);
+		height = makeHeightSafe(height);
+
+		byte[] pixelsBGR = ImageUtils.imageToPixelsBGR(img);
+		
+		List<byte[]> byteImgs = img2img(pixelsBGR, 
+				prompt, negative_prompt, 
+				cfg_scale, width, height, 
+				sample_method, sample_steps, strength, seed);
+		
+		List<BufferedImage> results = new ArrayList<>();
+		for (byte[] byteImage : byteImgs) {
+			
+			BufferedImage bufferedImage = ImageUtils.pixelsBGRToImage(byteImage, width, height);
+			results.add(bufferedImage);
+
+		}
+		
+		return results;
+		
+	}
+	
+	
+	/**
+	 * 
+	 * @param img NotNull
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @param cfg_scale Nullable, default is 7.0f. 
+	 * @param width Nullable, default is 512. 
+	 * @param height Nullable, default is 512, 
+	 * @param sample_method Nullable, default is {@link SampleMethod#EULER_A}
+	 * @param sample_steps Nullable, default is 20.  
+	 * @param strength Nullable, default is 0.75f.
+	 * @param seed Nullable, default is 42L. 
+	 * @return
+	 */
+	public List<byte[]> img2img(byte[] img, String prompt, String negative_prompt, 
+			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
+			Integer sample_steps, Float strength, Long seed) {
+		
+		if (StringUtils.isBlank(prompt)) {
+			throw new IllegalArgumentException("Argument prompt can not be empty/blank. ");
+		}
+		
+		if (negative_prompt == null) {
+			negative_prompt = "";
+		}
+		
+		if (cfg_scale == null) {
+			cfg_scale = 7.0f;
+		}
+		
+		width = makeWidthSafe(width);
+		height = makeHeightSafe(height);
+		
+		if (sample_method == null) {
+			sample_method = SampleMethod.EULER_A;
+		}
+		
+		if (sample_steps == null) {
+			sample_steps = 20;
+		}
+		
+		if (seed == null) {
+			seed = 42L;
+		}
+		
+		if (strength == null) {
+			strength = 0.75f;
+		}
+		
+		
+		List<byte[]> results = img2img0(pointer, 
+				img,
+				prompt, negative_prompt, cfg_scale, 
+				width, height, sample_method, sample_steps, strength, seed);
+		
+		
+		return results;
+	}
+	
+
+	protected static native List<byte[]> img2img0(
+			long pointer, 
+			byte[] img,
+			String prompt, String negative_prompt, 
+			float cfg_scale, int width, int height, int sample_method, 
+			int sample_steps, float strength, long seed);
+	
+	
+	
 	
 	
 
