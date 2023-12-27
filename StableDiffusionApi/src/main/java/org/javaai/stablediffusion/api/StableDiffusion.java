@@ -1,10 +1,22 @@
 package org.javaai.stablediffusion.api;
 
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
+import org.javaai.stablediffusion.api.utils.ImageUtils;
 
 public class StableDiffusion implements AutoCloseable {
 
 	private Long pointer;
+	
+
+	public static final Integer img_default_width = 512;
+
+	public static final Integer img_default_height = 512;
+	
+	
 
 	
 	
@@ -130,6 +142,121 @@ public class StableDiffusion implements AutoCloseable {
 			String model_path, String vae_path, int ggml_type_value, int schedule);
 	
 	
+	/**
+	 * 
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @param cfg_scale Nullable, default is 7.0f. 
+	 * @param width Nullable, default is 512. 
+	 * @param height Nullable, default is 512, 
+	 * @param sample_method Nullable, default is {@link SampleMethod#EULER_A}
+	 * @param sample_steps Nullable, default is 20.  
+	 * @param seed Nullable, default is 42L. 
+	 * @param batch_count Nullable, default is 1. 
+	 * @return
+	 */
+	public List<BufferedImage> txt2img(String prompt, String negative_prompt, 
+			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
+			Integer sample_steps, Long seed, Integer batch_count) {
+		
+		width = makeWidthSafe(width);
+		height = makeHeightSafe(height);
+		
+		List<byte[]> pixelImages = txt2PixelsImg(prompt, negative_prompt, cfg_scale, width, height, sample_method, sample_steps, seed, batch_count);
+		
+		List<BufferedImage> results = new ArrayList<>(pixelImages.size());
+		for (byte[] pixels : pixelImages) {
+			BufferedImage image = ImageUtils.pixelsBGRToImage(pixels, width, height);
+			results.add(image);
+		}
+		
+		return results;
+		
+	}
+	
+
+	private Integer makeWidthSafe(Integer width) {
+
+		if (width == null) {
+			width = img_default_width;
+		}
+		
+		return width;
+	}
+
+	private Integer makeHeightSafe(Integer height) {
+
+		if (height == null) {
+			height = img_default_height;
+		}
+		
+		return height;
+	}
+	
+	
+	/**
+	 * 
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @param cfg_scale Nullable, default is 7.0f. 
+	 * @param width Nullable, default is 512. 
+	 * @param height Nullable, default is 512, 
+	 * @param sample_method Nullable, default is {@link SampleMethod#EULER_A}
+	 * @param sample_steps Nullable, default is 20.  
+	 * @param seed Nullable, default is 42L. 
+	 * @param batch_count Nullable, default is 1. 
+	 * @return
+	 */
+	public List<byte[]> txt2PixelsImg(String prompt, String negative_prompt, 
+			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
+			Integer sample_steps, Long seed, Integer batch_count) {
+		
+		if (StringUtils.isBlank(prompt)) {
+			throw new IllegalArgumentException("Argument prompt can not be empty/blank. ");
+		}
+		
+		if (negative_prompt == null) {
+			negative_prompt = "";
+		}
+		
+		if (cfg_scale == null) {
+			cfg_scale = 7.0f;
+		}
+		
+		width = makeWidthSafe(width);
+		height = makeHeightSafe(height);
+		
+		if (sample_method == null) {
+			sample_method = SampleMethod.EULER_A;
+		}
+		
+		if (sample_steps == null) {
+			sample_steps = 20;
+		}
+		
+		if (seed == null) {
+			seed = 42L;
+		}
+		
+		if (batch_count == null) {
+			batch_count = 1;
+		}
+		
+		
+		List<byte[]> results = txt2img0(pointer, 
+				prompt, negative_prompt, cfg_scale, 
+				width, height, sample_method, sample_steps, seed, batch_count);
+		
+		
+		return results;
+	}
+	
+
+	protected static native List<byte[]> txt2img0(
+			long pointer, 
+			String prompt, String negative_prompt, 
+			float cfg_scale, int width, int height, int sample_method, 
+			int sample_steps, long seed, int batch_count);
 	
 	
 	
