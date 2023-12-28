@@ -68,7 +68,11 @@ public class ImageUtils {
 	}
 	
 	
-	
+	/**
+	 * swap Red channel and Blue channel. 
+	 * @param data
+	 * @return
+	 */
 	public static byte[] reverseRGB(byte[] data) {
 		
 		byte[] results = Arrays.copyOf(data, data.length);
