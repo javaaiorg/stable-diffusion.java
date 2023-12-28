@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.javaai.stablediffusion.api.result.Img2ImgParams;
+import org.javaai.stablediffusion.api.result.StableResult;
+import org.javaai.stablediffusion.api.result.Txt2ImgParams;
 import org.javaai.stablediffusion.api.utils.ImageUtils;
 
 public class StableDiffusion implements AutoCloseable {
@@ -157,8 +160,8 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param negative_prompt Nullable, default is empty string. 
 	 * @return results already converted to BGR color image.
 	 */
-	public List<BufferedImage> txt2img(String prompt, String negative_prompt) {
-		List<BufferedImage> results = txt2img(prompt, negative_prompt, null, null, null, null, null, null, null);
+	public StableResult<Txt2ImgParams, BufferedImage> txt2img(String prompt, String negative_prompt) {
+		StableResult<Txt2ImgParams, BufferedImage> results = txt2img(prompt, negative_prompt, null, null, null, null, null, null, null);
 		
 		return results;
 	}
@@ -176,27 +179,33 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param batch_count Nullable, default is 1. 
 	 * @return results already converted to BGR color image. 
 	 */
-	public List<BufferedImage> txt2img(String prompt, String negative_prompt, 
+	public StableResult<Txt2ImgParams, BufferedImage> txt2img(String prompt, String negative_prompt, 
 			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
 			Integer sample_steps, Long seed, Integer batch_count) {
 		
 		
-		MutablePair<Integer, Integer> imageSize = new MutablePair<>();
+		StableResult<Txt2ImgParams, byte[]> pixelImagesResult = txt2PixelsImg(prompt, 
+				negative_prompt, cfg_scale, width, 
+				height, sample_method, sample_steps, seed, 
+				batch_count);
 		
-		List<byte[]> pixelImages = txt2PixelsImg(prompt, negative_prompt, 
-				cfg_scale, width, height, 
-				sample_method, sample_steps, seed, batch_count, 
-				imageSize);
 		
-		List<BufferedImage> results = new ArrayList<>(pixelImages.size());
-		for (byte[] pixels : pixelImages) {
+		StableResult<Txt2ImgParams, BufferedImage> bufferedImageResult = new StableResult<>();
+		bufferedImageResult.setParams(pixelImagesResult.getParams());
+		
+		List<BufferedImage> results = new ArrayList<>(pixelImagesResult.getResultImages().size());
+		for (byte[] pixels : pixelImagesResult.getResultImages()) {
 			pixels = ImageUtils.reverseRGB(pixels);
 			
-			BufferedImage image = ImageUtils.pixelsBGRToImage(pixels, imageSize.getLeft(), imageSize.getRight());
+			BufferedImage image = ImageUtils.pixelsBGRToImage(pixels, 
+					pixelImagesResult.getParams().getWidth(), 
+					pixelImagesResult.getParams().getHeight());
 			results.add(image);
 		}
 		
-		return results;
+		bufferedImageResult.setResultImages(results);
+		
+		return bufferedImageResult;
 		
 	}
 	
@@ -222,14 +231,15 @@ public class StableDiffusion implements AutoCloseable {
 	
 	/**
 	 * 
+	 * @param  Nullable, output param returns image size, left is width, right is height. 
 	 * @param prompt NotNull 
 	 * @param negative_prompt Nullable, default is empty string. 
-	 * @param out_imageSize Nullable, output param returns image size, left is width, right is height. 
 	 * @return pixels images, RGB color mode, need convert to GBR color mode by {@link ImageUtils#reverseRGB(byte[])} manually. 
 	 */
-	public List<byte[]> txt2PixelsImg(String prompt, String negative_prompt, 
-			MutablePair<Integer, Integer> out_imageSize) {
-		return txt2PixelsImg(prompt, negative_prompt, null, null, null, null, null, null, null, out_imageSize);
+	public StableResult<Txt2ImgParams, byte[]> txt2PixelsImg(
+			String prompt, 
+			String negative_prompt) {
+		return txt2PixelsImg(prompt, negative_prompt, null, null, null, null, null, null, null);
 	}
 	
 	/**
@@ -243,12 +253,11 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param sample_steps Nullable, default is 20.  
 	 * @param seed Nullable, default is 42L. 
 	 * @param batch_count Nullable, default is 1. 
-	 * @param out_imageSize Nullable, output param returns image size, left is width, right is height. 
 	 * @return pixels images, RGB color mode, need convert to GBR color mode by {@link ImageUtils#reverseRGB(byte[])} manually. 
 	 */
-	public List<byte[]> txt2PixelsImg(String prompt, String negative_prompt, 
-			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
-			Integer sample_steps, Long seed, Integer batch_count, MutablePair<Integer, Integer> out_imageSize) {
+	public StableResult<Txt2ImgParams, byte[]> txt2PixelsImg(String prompt, 
+			String negative_prompt, Float cfg_scale, Integer width, Integer height, 
+			Integer sample_method, Integer sample_steps, Long seed, Integer batch_count) {
 		
 		if (StringUtils.isBlank(prompt)) {
 			throw new IllegalArgumentException("Argument prompt can not be empty/blank. ");
@@ -286,13 +295,22 @@ public class StableDiffusion implements AutoCloseable {
 				prompt, negative_prompt, cfg_scale, 
 				width, height, sample_method, sample_steps, seed, batch_count);
 		
-		if (out_imageSize != null) {
-			out_imageSize.setLeft(width);
-			out_imageSize.setRight(height);
-		}
+		StableResult<Txt2ImgParams, byte[]> stableResult = new StableResult<>();
+		Txt2ImgParams params = new Txt2ImgParams();
+		params.setPrompt(prompt);
+		params.setNegative_prompt(negative_prompt);
+		params.setCfg_scale(cfg_scale);
+		params.setWidth(width);
+		params.setHeight(height);
+		params.setSample_method(sample_method);
+		params.setSample_steps(sample_steps);
+		params.setSeed(seed);
+		params.setBatch_count(batch_count);
 		
+		stableResult.setParams(params);
+		stableResult.setResultImages(results);
 		
-		return results;
+		return stableResult;
 	}
 	
 
@@ -313,9 +331,10 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param negative_prompt Nullable, default is empty string. 
 	 * @return results already converted to BGR color image.
 	 */
-	public List<BufferedImage> img2img(BufferedImage img, String prompt, String negative_prompt) {
+	public StableResult<Img2ImgParams, BufferedImage> img2img(BufferedImage img, String prompt, String negative_prompt) {
 		
-		List<BufferedImage> results = img2img(img, prompt, negative_prompt, null, null, null, null, null, null, null);
+		StableResult<Img2ImgParams, BufferedImage> results = img2img(img, 
+				prompt, negative_prompt, null, null, null, null, null, null, null);
 		
 		return results;
 	}
@@ -336,7 +355,7 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param seed Nullable, default is 42L. 
 	 * @return results already converted to BGR color image.
 	 */
-	public List<BufferedImage> img2img(BufferedImage img, String prompt, String negative_prompt, 
+	public StableResult<Img2ImgParams, BufferedImage> img2img(BufferedImage img, String prompt, String negative_prompt, 
 			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
 			Integer sample_steps, Float strength, Long seed) {
 		
@@ -344,24 +363,29 @@ public class StableDiffusion implements AutoCloseable {
 		byte[] pixelsBGR = ImageUtils.imageToPixelsBGR(img);
 		pixelsBGR = ImageUtils.reverseRGB(pixelsBGR);
 		
-		MutablePair<Integer, Integer> imageSize = new MutablePair<>();
-		List<byte[]> byteImgs = img2img(pixelsBGR, 
+		StableResult<Img2ImgParams, byte[]> result = img2img(
+				pixelsBGR, 
 				prompt, negative_prompt, 
 				cfg_scale, width, height, 
-				sample_method, sample_steps, strength, seed, imageSize);
+				sample_method, sample_steps, strength, seed);
 		
-		List<BufferedImage> results = new ArrayList<>();
-		for (byte[] byteImage : byteImgs) {
+		StableResult<Img2ImgParams, BufferedImage> biResult = new StableResult<>();
+		biResult.setParams(result.getParams());
+		
+		List<BufferedImage> bufferedImages = new ArrayList<>();
+		for (byte[] byteImage : result.getResultImages()) {
 			
 			byteImage = ImageUtils.reverseRGB(byteImage);
 			
 			BufferedImage bufferedImage = ImageUtils.pixelsBGRToImage(byteImage, 
-					imageSize.getLeft(), imageSize.getRight());
-			results.add(bufferedImage);
+					result.getParams().getWidth(), result.getParams().getHeight());
+			bufferedImages.add(bufferedImage);
 
 		}
 		
-		return results;
+		biResult.setResultImages(bufferedImages);
+		
+		return biResult;
 		
 	}
 	
@@ -372,14 +396,13 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param img NotNull, need RGB color mode image, need convert by {@link ImageUtils#reverseRGB(byte[])} manually. 
 	 * @param prompt NotNull 
 	 * @param negative_prompt Nullable, default is empty string. 
-	 * @param out_imageSize Nullable, output param returns image size, left is width, right is height. 
+	 * @param  Nullable, output param returns image size, left is width, right is height. 
 	 * @return RGB color mode image, need convert by {@link ImageUtils#reverseRGB(byte[])} manually. 
 	 */
-	public List<byte[]> img2img(byte[] img, String prompt, String negative_prompt, 
-			MutablePair<Integer, Integer> out_imageSize) {
+	public StableResult<Img2ImgParams, byte[]> img2img(byte[] img, String prompt, String negative_prompt) {
 		
-		List<byte[]> results = img2img(img, prompt, negative_prompt, 
-				null, null, null, null, null, null, null, out_imageSize);
+		StableResult<Img2ImgParams, byte[]> results = img2img(img, prompt, negative_prompt, 
+				null, null, null, null, null, null, null);
 		
 		
 		return results;
@@ -399,13 +422,13 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param sample_steps Nullable, default is 20.  
 	 * @param strength Nullable, default is 0.75f.
 	 * @param seed Nullable, default is 42L. 
-	 * @param out_imageSize Nullable, output param returns image size, left is width, right is height. 
+	 * @param  Nullable, output param returns image size, left is width, right is height. 
 	 * @return RGB color mode image, need convert by {@link ImageUtils#reverseRGB(byte[])} manually. 
 	 */
-	public List<byte[]> img2img(byte[] img, String prompt, String negative_prompt, 
+	public StableResult<Img2ImgParams, byte[]> img2img(byte[] img, String prompt, String negative_prompt, 
 			Float cfg_scale, Integer width, Integer height, Integer sample_method, 
-			Integer sample_steps, Float strength, Long seed, 
-			MutablePair<Integer, Integer> out_imageSize) {
+			Integer sample_steps, Float strength, Long seed) {
+		
 		
 		img = ImageUtils.reverseRGB(img);
 		
@@ -441,15 +464,28 @@ public class StableDiffusion implements AutoCloseable {
 		}
 		
 		
-		List<byte[]> results = img2img0(pointer, 
+		List<byte[]> resultImages = img2img0(pointer, 
 				img,
 				prompt, negative_prompt, cfg_scale, 
 				width, height, sample_method, sample_steps, strength, seed);
 		
-		out_imageSize.setLeft(width);
-		out_imageSize.setRight(height);
+
+		StableResult<Img2ImgParams, byte[]> result = new StableResult<>();
+		Img2ImgParams params = new Img2ImgParams();
+		params.setPrompt(prompt);
+		params.setNegative_prompt(negative_prompt);
+		params.setCfg_scale(cfg_scale);
+		params.setWidth(width);
+		params.setHeight(height);
+		params.setSample_method(sample_method);
+		params.setSample_steps(sample_steps);
+		params.setStrength(strength);
+		params.setSeed(seed);
 		
-		return results;
+		result.setParams(params);
+		result.setResultImages(resultImages);
+		
+		return result;
 	}
 	
 
