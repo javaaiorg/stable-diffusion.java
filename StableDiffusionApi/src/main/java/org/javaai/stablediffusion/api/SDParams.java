@@ -1,5 +1,11 @@
 package org.javaai.stablediffusion.api;
 
+import org.javaai.stablediffusion.api.enums.GGML_type;
+import org.javaai.stablediffusion.api.enums.RNGType;
+import org.javaai.stablediffusion.api.enums.SDMode;
+import org.javaai.stablediffusion.api.enums.SampleMethod;
+import org.javaai.stablediffusion.api.enums.Schedule;
+
 public class SDParams {
 	
 	

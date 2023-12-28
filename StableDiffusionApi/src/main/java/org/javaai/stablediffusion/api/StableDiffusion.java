@@ -6,6 +6,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.javaai.stablediffusion.api.enums.GGML_type;
+import org.javaai.stablediffusion.api.enums.RNGType;
+import org.javaai.stablediffusion.api.enums.SampleMethod;
+import org.javaai.stablediffusion.api.enums.Schedule;
 import org.javaai.stablediffusion.api.result.Img2ImgParams;
 import org.javaai.stablediffusion.api.result.StableResult;
 import org.javaai.stablediffusion.api.result.Txt2ImgParams;

@@ -1,4 +1,4 @@
-package org.javaai.stablediffusion.api;
+package org.javaai.stablediffusion.api.enums;
 
 public class RNGType {
 	
