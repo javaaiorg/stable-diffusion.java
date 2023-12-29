@@ -29,7 +29,7 @@ public class StableDiffusion implements AutoCloseable {
 	 * 
 	 */
 	public StableDiffusion() {
-		this(null, null, null, null, null, null);
+		this(null, null, null, null, null, null, null, null);
 	}
 
 	
@@ -43,8 +43,14 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param lora_model_dir Nullable, default is empty string. 
 	 * @param rng_type Nullable, default is {@link RNGType#STD_DEFAULT_RNG}
 	 */
-	public StableDiffusion(Integer n_threads, Boolean vae_decode_only, String taesd_path,
-			Boolean free_params_immediately, String lora_model_dir, Integer rng_type) {
+	public StableDiffusion(Integer n_threads, 
+			Boolean vae_decode_only, 
+			String taesd_path, 
+			String esrgan_path, 
+			Boolean free_params_immediately, 
+			Boolean vae_tiling, 
+			String lora_model_dir, 
+			Integer rng_type) {
 
 		if (n_threads == null) {
 			n_threads = -1;
@@ -57,9 +63,17 @@ public class StableDiffusion implements AutoCloseable {
 		if (taesd_path == null) {
 			taesd_path = "";
 		}
+		
+		if (esrgan_path == null) {
+			esrgan_path = "";
+		}
 
 		if (free_params_immediately == null) {
 			free_params_immediately = false;
+		}
+		
+		if (vae_tiling == null) {
+			vae_tiling = false;
 		}
 
 		if (lora_model_dir == null) {
@@ -71,14 +85,16 @@ public class StableDiffusion implements AutoCloseable {
 		}
 		
 		
-		pointer = newInstance(n_threads, vae_decode_only, taesd_path, free_params_immediately, lora_model_dir, rng_type);
+		pointer = newInstance(n_threads, vae_decode_only, 
+				taesd_path, esrgan_path, free_params_immediately, vae_tiling,
+				lora_model_dir, rng_type);
 		
 
 	}
 	
 	
 	protected static native long newInstance(int n_threads, boolean vae_decode_only, String taesd_path,
-			boolean free_params_immediately, String lora_model_dir, int rng_type);
+			String esrgan_path, boolean free_params_immediately, Boolean vae_tiling, String lora_model_dir, int rng_type);
 	
 	
 	
