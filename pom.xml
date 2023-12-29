@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	
-	<groupId>org.javaai.diffussion</groupId>
+	<groupId>org.javaai.stable-diffussion</groupId>
 	<artifactId>stable-diffussion.java</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
