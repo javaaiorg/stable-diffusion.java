@@ -161,11 +161,11 @@ public class StableDiffusion implements AutoCloseable {
 	/**
 	 * 
 	 * @param prompt NotNull 
-	 * @param negative_prompt Nullable, default is empty string. 
 	 * @return results already converted to BGR color image.
 	 */
-	public StableResult<Txt2ImgParams, BufferedImage> txt2img(String prompt, String negative_prompt) {
-		StableResult<Txt2ImgParams, BufferedImage> results = txt2img(prompt, negative_prompt, null, null, null, null, null, null, null);
+	public StableResult<Txt2ImgParams, BufferedImage> txt2img(String prompt) {
+		StableResult<Txt2ImgParams, BufferedImage> results = txt2img(prompt, null, 
+				null, null, null, null, null, null, null);
 		
 		return results;
 	}
@@ -237,13 +237,11 @@ public class StableDiffusion implements AutoCloseable {
 	 * 
 	 * @param  Nullable, output param returns image size, left is width, right is height. 
 	 * @param prompt NotNull 
-	 * @param negative_prompt Nullable, default is empty string. 
 	 * @return pixels images, RGB color mode, need convert to GBR color mode by {@link ImageUtils#reverseRGB(byte[])} manually. 
 	 */
 	public StableResult<Txt2ImgParams, byte[]> txt2PixelsImg(
-			String prompt, 
-			String negative_prompt) {
-		return txt2PixelsImg(prompt, negative_prompt, null, null, null, null, null, null, null);
+			String prompt) {
+		return txt2PixelsImg(prompt, null, null, null, null, null, null, null, null);
 	}
 	
 	/**
