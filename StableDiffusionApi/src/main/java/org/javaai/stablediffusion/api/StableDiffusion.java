@@ -85,12 +85,7 @@ public class StableDiffusion implements AutoCloseable {
 	protected static native void delete(long pointer);
 	
 	
-	@Override
-	protected void finalize() throws Throwable {
-		close();
-		super.finalize();
-	}
-
+	
 
 	@Override
 	public void close() throws Exception {
