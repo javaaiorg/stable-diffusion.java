@@ -1,5 +1,6 @@
 target
 /target/
+StableDiffusionApi/src/main/java/org/javaai/stablediffusion/api/lib
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
