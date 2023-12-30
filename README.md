@@ -76,7 +76,7 @@ for (int i = 0; i < imgs.getResultImages().size(); i ++) {
 
 ### img2img Example:
 Input previous generated image, and give the prompt: 
-#####a lovely cat with blue eyes
+##### a lovely cat with blue eyes
 Let's see what will happend: 
 
 ### Java Code: 
