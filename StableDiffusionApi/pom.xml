@@ -65,7 +65,7 @@
 	<!-- LICENSE -->
 	<licenses>
 		<license>
-			<name>The Apache Software License, Version 2.0</name>
+			<name>MIT</name>
 			<url>https://opensource.org/license/mit/</url>
 			<distribution>repo</distribution>
 		</license>
