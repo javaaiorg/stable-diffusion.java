@@ -15,7 +15,6 @@
 
  */
 
-
 package org.javaai.stablediffusion.api;
 
 import java.io.File;
@@ -26,6 +25,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
@@ -37,10 +37,8 @@ import java.util.regex.Pattern;
 
 public class StableDiffusionLoader {
 
-	
 	public static final String NATIVE_LIBRARY_NAME = "sd-jni";
-	
-	
+
 	private final static Logger logger = Logger.getLogger(StableDiffusionLoader.class.getName());
 
 	static enum OS {
@@ -190,10 +188,10 @@ public class StableDiffusionLoader {
 
 	/**
 	 * Exactly once per {@link ClassLoader}, attempt to load the native library (via
-	 * {@link System#loadLibrary(String)} with {@link #NATIVE_LIBRARY_NAME}). If
-	 * the first attempt fails, the native binary will be extracted from the
-	 * classpath to a temporary location (which gets cleaned up on shutdown), that
-	 * location is added to the {@code java.library.path} system property and
+	 * {@link System#loadLibrary(String)} with {@link #NATIVE_LIBRARY_NAME}). If the
+	 * first attempt fails, the native binary will be extracted from the classpath
+	 * to a temporary location (which gets cleaned up on shutdown), that location is
+	 * added to the {@code java.library.path} system property and
 	 * {@link ClassLoader#usr_paths}, and then another call to load the library is
 	 * made. Note this method uses reflection to gain access to private memory in
 	 * {@link ClassLoader} as there's no documented method to augment the library
@@ -231,8 +229,7 @@ public class StableDiffusionLoader {
 				/* Retain this path for cleaning up the library path later. */
 				this.libraryPath = extractNativeBinary();
 
-				addLibraryPath(libraryPath.getParent());
-				System.loadLibrary(NATIVE_LIBRARY_NAME);
+				System.load(libraryPath.toString());
 
 				logger.log(Level.FINEST, "sd-jni library \"{0}\" loaded from extracted copy at \"{1}\".",
 						new Object[] { NATIVE_LIBRARY_NAME, System.mapLibraryName(NATIVE_LIBRARY_NAME) });
@@ -245,12 +242,6 @@ public class StableDiffusionLoader {
 		@Override
 		protected void finalize() throws Throwable {
 			super.finalize();
-
-			if (null == libraryPath) {
-				return;
-			}
-
-			removeLibraryPath(libraryPath.getParent());
 		}
 
 		private static class Holder {
@@ -259,67 +250,6 @@ public class StableDiffusionLoader {
 
 		public static SharedLoader getInstance() {
 			return Holder.INSTANCE;
-		}
-
-		/**
-		 * Adds the provided {@link Path}, normalized, to the
-		 * {@link ClassLoader#usr_paths} array, as well as to the
-		 * {@code java.library.path} system property. Uses the reflection API to make
-		 * the field accessible, and may be unsafe in environments with a security
-		 * policy.
-		 *
-		 * @see <a href="http://stackoverflow.com/q/15409223">Adding new paths for
-		 *      native libraries at runtime in Java</a>
-		 */
-		private static void addLibraryPath(final Path path) {
-			final String normalizedPath = path.normalize().toString();
-
-			try {
-				final Field field = ClassLoader.class.getDeclaredField("usr_paths");
-				field.setAccessible(true);
-
-				final Set<String> userPaths = new HashSet<>(Arrays.asList((String[]) field.get(null)));
-				userPaths.add(normalizedPath);
-
-				field.set(null, userPaths.toArray(new String[userPaths.size()]));
-
-				System.setProperty("java.library.path",
-						System.getProperty("java.library.path") + File.pathSeparator + normalizedPath);
-
-				logger.log(Level.FINEST, "System library path now \"{0}\".", System.getProperty("java.library.path"));
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException("Failed to get permissions to set library path");
-			} catch (NoSuchFieldException e) {
-				throw new RuntimeException("Failed to get field handle to set library path");
-			}
-		}
-
-		/**
-		 * Removes the provided {@link Path}, normalized, from the
-		 * {@link ClassLoader#usr_paths} array, as well as to the
-		 * {@code java.library.path} system property. Uses the reflection API to make
-		 * the field accessible, and may be unsafe in environments with a security
-		 * policy.
-		 */
-		private static void removeLibraryPath(final Path path) {
-			final String normalizedPath = path.normalize().toString();
-
-			try {
-				final Field field = ClassLoader.class.getDeclaredField("usr_paths");
-				field.setAccessible(true);
-
-				final Set<String> userPaths = new HashSet<>(Arrays.asList((String[]) field.get(null)));
-				userPaths.remove(normalizedPath);
-
-				field.set(null, userPaths.toArray(new String[userPaths.size()]));
-
-				System.setProperty("java.library.path", System.getProperty("java.library.path")
-						.replace(File.pathSeparator + path.normalize().toString(), ""));
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException("Failed to get permissions to set library path");
-			} catch (NoSuchFieldException e) {
-				throw new RuntimeException("Failed to get field handle to set library path");
-			}
 		}
 	}
 
@@ -375,15 +305,15 @@ public class StableDiffusionLoader {
 			switch (arch) {
 			case X86_32:
 				throw new UnsupportedPlatformException(os, arch);
-				//location = "/org/javaai/stablediffusion/api/lib/linux/x86_32/libsd-jni.so";
-				//break;
+			// location = "/org/javaai/stablediffusion/api/lib/linux/x86_32/libsd-jni.so";
+			// break;
 			case X86_64:
 				location = "/org/javaai/stablediffusion/api/lib/linux/x86_64/libsd-jni.so";
 				break;
 			case ARMv8:
 				throw new UnsupportedPlatformException(os, arch);
-				//location = "/org/javaai/stablediffusion/api/lib/linux/ARMv8/libsd-jni.so";
-				//break;
+			// location = "/org/javaai/stablediffusion/api/lib/linux/ARMv8/libsd-jni.so";
+			// break;
 			default:
 				throw new UnsupportedPlatformException(os, arch);
 			}
@@ -401,8 +331,8 @@ public class StableDiffusionLoader {
 			switch (arch) {
 			case X86_32:
 				throw new UnsupportedPlatformException(os, arch);
-				//location = "/org/javaai/stablediffusion/api/lib/windows/x86_32/sd-jni.dll";
-				//break;
+			// location = "/org/javaai/stablediffusion/api/lib/windows/x86_32/sd-jni.dll";
+			// break;
 			case X86_64:
 				location = "/org/javaai/stablediffusion/api/lib/windows/x86_64/sd-jni.dll";
 				break;

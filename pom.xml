@@ -20,6 +20,7 @@
 		
 		<module>StableDiffusionApi</module>
 		<module>StableDiffusionExamples</module>
+		<module>StableDiffusionConsole</module>
 		
 	</modules>
 
