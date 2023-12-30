@@ -14,6 +14,11 @@
 Java binding project of [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)
 
 
+## Support platforms:
+Windows: x86_64
+Linux: x86_64
+OSX: x86_64
+
 
 ## Usage
 
@@ -74,6 +79,8 @@ for (int i = 0; i < imgs.getResultImages().size(); i ++) {
   <img src="./assets/sd-java-txt2img-0.jpg" width="256x">
 </p>
 
+
+
 ### img2img Example:
 Input previous generated image, and give the prompt: 
 ##### a lovely cat with blue eyes
@@ -107,6 +114,17 @@ for (int i = 0; i < imgs.getResultImages().size(); i ++) {
 </p>
 
 
+## Don't forget close StableDiffution instance manually:
+### Java Code: 
+```Java
+StableDiffusion sd = new StableDiffusion();
+         
+try {
+    // Do something...
+} finally {
+    sd.close();
+}
+```
 
 
 
