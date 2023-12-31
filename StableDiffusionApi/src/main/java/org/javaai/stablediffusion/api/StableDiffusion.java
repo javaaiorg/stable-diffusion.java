@@ -93,7 +93,7 @@ public class StableDiffusion implements AutoCloseable {
 	
 	
 	protected static native long newInstance(int n_threads, boolean vae_decode_only, String taesd_path,
-			String esrgan_path, boolean free_params_immediately, Boolean vae_tiling, String lora_model_dir, int rng_type);
+			String esrgan_path, boolean free_params_immediately, boolean vae_tiling, String lora_model_dir, int rng_type);
 	
 	
 	
