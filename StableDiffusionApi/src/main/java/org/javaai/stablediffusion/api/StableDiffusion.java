@@ -165,7 +165,7 @@ public class StableDiffusion implements AutoCloseable {
 			long pointer, 
 			String model_path, String vae_path, int ggml_type_value, int schedule);
 	
-	
+
 	
 
 	/**
@@ -175,6 +175,20 @@ public class StableDiffusion implements AutoCloseable {
 	 */
 	public StableResult<Txt2ImgParams, BufferedImage> txt2img(String prompt) {
 		StableResult<Txt2ImgParams, BufferedImage> results = txt2img(prompt, null, 
+				null, null, null, null, null, null, null);
+		
+		return results;
+	}
+	
+
+	/**
+	 * 
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @return results already converted to BGR color image.
+	 */
+	public StableResult<Txt2ImgParams, BufferedImage> txt2img(String prompt, String negative_prompt) {
+		StableResult<Txt2ImgParams, BufferedImage> results = txt2img(prompt, negative_prompt, 
 				null, null, null, null, null, null, null);
 		
 		return results;
@@ -332,6 +346,24 @@ public class StableDiffusion implements AutoCloseable {
 			float cfg_scale, int width, int height, int sample_method, 
 			int sample_steps, long seed, int batch_count);
 	
+
+
+	
+	/**
+	 * 
+	 * @param img NotNull
+	 * @param prompt NotNull 
+	 * @param negative_prompt Nullable, default is empty string. 
+	 * @return results already converted to BGR color image.
+	 */
+	public StableResult<Img2ImgParams, BufferedImage> img2img(
+			BufferedImage img, String prompt) {
+		
+		StableResult<Img2ImgParams, BufferedImage> results = img2img(img, 
+				prompt, null, null, null, null, null, null, null, null);
+		
+		return results;
+	}
 	
 	
 
@@ -343,7 +375,8 @@ public class StableDiffusion implements AutoCloseable {
 	 * @param negative_prompt Nullable, default is empty string. 
 	 * @return results already converted to BGR color image.
 	 */
-	public StableResult<Img2ImgParams, BufferedImage> img2img(BufferedImage img, String prompt, String negative_prompt) {
+	public StableResult<Img2ImgParams, BufferedImage> img2img(
+			BufferedImage img, String prompt, String negative_prompt) {
 		
 		StableResult<Img2ImgParams, BufferedImage> results = img2img(img, 
 				prompt, negative_prompt, null, null, null, null, null, null, null);
