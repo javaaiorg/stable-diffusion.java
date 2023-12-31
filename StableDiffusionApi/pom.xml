@@ -6,7 +6,7 @@
 
 	<groupId>org.javaai.stablediffusion</groupId>
 	<artifactId>StableDiffusionApi</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>StableDiffusionApi</name>
 	<description>StableDiffusionApi</description>
 
@@ -210,6 +210,9 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			
+			
 		</plugins>
 	</build>
 
