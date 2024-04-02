@@ -126,7 +126,12 @@ try {
 }
 ```
 
-
+### Example to custom log output: 
+``` Java
+Util.setSDLogCallback((SDLogLevel, file, line, log) -> {
+	System.out.println(SDLogUtil.formatLog(SDLogLevel, file, line, log));
+});
+```
 
 
 

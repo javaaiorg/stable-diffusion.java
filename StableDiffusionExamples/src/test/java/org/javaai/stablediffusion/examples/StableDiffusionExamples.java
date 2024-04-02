@@ -5,6 +5,7 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
+import org.javaai.stablediffusion.api.SDLogUtil;
 import org.javaai.stablediffusion.api.StableDiffusion;
 import org.javaai.stablediffusion.api.StableDiffusionLoader;
 import org.javaai.stablediffusion.api.Util;
@@ -174,6 +175,11 @@ public class StableDiffusionExamples {
 
 	@Test
 	void testTxt2Img() throws Exception {
+		
+		// Example to custom log output: 
+		Util.setSDLogCallback((SDLogLevel, file, line, log) -> {
+			System.out.println(SDLogUtil.formatLog(SDLogLevel, file, line, log));
+		});
 		
 		StableDiffusion sd = createStableDifussionInstance();
 		
