@@ -28,10 +28,7 @@ public class Util {
 		}
 	}
 	
-	public static void fuckfuckfuckyou2(int i, String s, int i2, String s2) {
-		System.out.println(s2);
-	}
-
+	
 	/**
 	 * 
 	 * @param logCallback
@@ -46,7 +43,7 @@ public class Util {
 	}
 	
 
-	public static void removeSDLogCallback(SDLogCallback logCallback) {
+	public static void removeSDLogCallback() {
 		setSDLogCallback(null);
 	}
 	

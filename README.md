@@ -28,7 +28,7 @@ OSX: x86_64
 <dependency>
 	<groupId>org.javaai.stablediffusion</groupId>
 	<artifactId>StableDiffusionApi</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 </dependency>
 ```
 
