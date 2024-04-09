@@ -6,7 +6,7 @@
 	 
 	<groupId>org.javaai.stablediffusion</groupId>
 	<artifactId>StableDiffusionConsole</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<name>StableDiffusionConsole</name>
 	<description>StableDiffusionConsole</description>
 
@@ -90,7 +90,7 @@
 		<dependency>
 			<groupId>org.javaai.stablediffusion</groupId>
 			<artifactId>StableDiffusionApi</artifactId>
-			<version>1.0.3</version>
+			<version>1.0.4</version>
 		</dependency>
 
 
